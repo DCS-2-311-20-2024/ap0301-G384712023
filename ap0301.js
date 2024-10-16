@@ -25,11 +25,30 @@ function init() {
   scene.add(axes);
 
   // ロボットの作成
-  const robot = makeMetalRobot();
-  scene.add(robot);
+  const robots = new THREE.Group;
+  for(let x = -4; x < 5; x++){
+    for(let z = -4; z < 5; z++){
+      let robot;
+      if(Math.random() <= 0.25){
+        robot = makeCBRobot();
+      }
+      else{
+        robot = makeMetalRobot();
+      }
+
+      robot.position.x = x * 6;
+      robot.position.z = z * 6;
+      robot.rotation.y = Math.atan2(x, z);
+      robots.add(robot);
+    }
+    
+  }
+
+  scene.add(robots);
+  
 
   // 光源の設定
-  const light = new THREE.SpotLight();
+  const light = new THREE.SpotLight(0xffffff, 1800);
   light.position.set(0, 30, 30);
   scene.add(light);
   
@@ -52,16 +71,22 @@ function init() {
     camera.position.z = param.z;
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
+    //ロボットの動き
+    robots.children.forEach((robot) => {
+      robot.rotation.y 
+        = (robot.rotation.y + 0.01) % (2 * Math.PI);
+      robot.position.y = Math.sin(robot.rotation.y);
+    }); //反対側に回る.
     renderer.render(scene, camera);
+    requestAnimationFrame(render); //renderが何回も動くように.
   }
 
   // カメラのコントローラ
   const gui = new GUI();
-  gui.add(param, "fov", 10, 100).onChange(render);
-  gui.add(param, "x", -50, 50).onChange(render);
-  gui.add(param, "y", -50, 50).onChange(render);
-  gui.add(param, "z", -50, 50).onChange(render);
-  
+  gui.add(param, "fov", 10, 100);
+  gui.add(param, "x", -50, 50);
+  gui.add(param, "y", -50, 50);
+  gui.add(param, "z", -50, 50);
   // 描画
   render();
 }
